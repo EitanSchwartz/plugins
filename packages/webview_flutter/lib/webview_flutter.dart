@@ -659,6 +659,14 @@ class WebViewController {
   Future<String> getTitle() {
     return _webViewPlatformController.getTitle();
   }
+
+  Future<void> scrollTo(int x, int y) {
+    return _webViewPlatformController.scrollTo(x, y);
+  }
+
+  Future<void> scrollBy(int x, int y) {
+    return _webViewPlatformController.scrollBy(x, y);
+  }
 }
 
 /// Manages cookies pertaining to all [WebView]s.
