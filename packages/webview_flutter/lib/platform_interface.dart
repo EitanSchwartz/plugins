@@ -167,6 +167,22 @@ abstract class WebViewPlatformController {
     throw UnimplementedError(
         "WebView getTitle is not implemented on the current platform");
   }
+
+  /// Set the scrolled position of this view.
+  /// 'x' - the x position to scroll to.
+  /// 'y' - the y position to scroll to.
+  Future<void> scrollTo(int x, int y) {
+    throw UnimplementedError(
+        "WebView scrollTo is not implemented on the current platform");
+  }
+
+  /// Move the scrolled position of this view.
+  /// 'x' - the amount of pixels to scroll by horizontally.
+  /// 'y' - the amount of pixels to scroll by vertically.
+  Future<void> scrollBy(int x, int y) {
+    throw UnimplementedError(
+        "WebView scrollBy is not implemented on the current platform");
+  }
 }
 
 /// A single setting for configuring a WebViewPlatform which may be absent.
