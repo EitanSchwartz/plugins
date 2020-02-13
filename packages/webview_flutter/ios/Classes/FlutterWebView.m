@@ -154,6 +154,10 @@
     [self onScrollTo:call result:result];
   } else if ([[call method] isEqualToString:@"scrollBy"]) {
     [self onScrollBy:call result:result];
+  } else if ([[call method] isEqualToString:@"getScrollX"]) {
+    [self getScrollX:call result:result];
+  } else if ([[call method] isEqualToString:@"getScrollY"]) {
+    [self getScrollY:call result:result];
   } else {
     result(FlutterMethodNotImplemented);
   }
@@ -297,6 +301,16 @@
 
     _webView.scrollView.contentOffset = CGPointMake(x, y);
     result(nil);
+}
+
+- (void)getScrollX:(FlutterMethodCall*)call result:(FlutterResult)result {
+    int offsetX = _webView.scrollView.contentOffset.x;
+    result([NSNumber numberWithInt:offsetX]);
+}
+
+- (void)getScrollY:(FlutterMethodCall*)call result:(FlutterResult)result {
+    int offsetY = _webView.scrollView.contentOffset.y;
+    result([NSNumber numberWithInt:offsetY]);
 }
 
 // Returns nil when successful, or an error message when one or more keys are unknown.

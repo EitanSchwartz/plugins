@@ -164,6 +164,12 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       case "scrollBy":
         scrollBy(methodCall, result);
         break;
+      case "getScrollX":
+        getScrollX(result);
+        break;
+      case "getScrollY":
+        getScrollY(result);
+        break;
       default:
         result.notImplemented();
     }
@@ -277,6 +283,14 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
     webView.scrollBy(x, y);
     result.success(null);
+  }
+
+  private void getScrollX(Result result) {
+    result.success(webView.getScrollX());
+  }
+
+  private void getScrollY(Result result) {
+    result.success(webView.getScrollY());
   }
 
   private void applySettings(Map<String, Object> settings) {

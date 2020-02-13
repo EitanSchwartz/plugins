@@ -673,6 +673,18 @@ class WebViewController {
   Future<void> scrollBy(int x, int y) {
     return _webViewPlatformController.scrollBy(x, y);
   }
+
+  /// Return the horizontal scroll position of this view.
+  /// Scroll position is measured from left.
+  Future<int> getScrollX() {
+    return _webViewPlatformController.getScrollX();
+  }
+
+  /// Return the vertical scroll position of this view.
+  /// Scroll position is measured from top.
+  Future<int> getScrollY() {
+    return _webViewPlatformController.getScrollY();
+  }
 }
 
 /// Manages cookies pertaining to all [WebView]s.
