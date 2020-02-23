@@ -32,8 +32,14 @@ class WebViewExample extends StatefulWidget {
 }
 
 class _WebViewExampleState extends State<WebViewExample> {
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+  GlobalKey _key = GlobalKey();
+  final double _WEBVIEW_HEIGHT = 800;
+
+  //This Controller is for WebView logic
+  final Completer<WebViewController> _webViewController = Completer<WebViewController>();
+
+  //CustomScrollView scrolling logic
+  ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,58 +48,76 @@ class _WebViewExampleState extends State<WebViewExample> {
         title: const Text('Flutter WebView example'),
         // This drop down menu demonstrates that Flutter widgets can be shown over the web view.
         actions: <Widget>[
-          NavigationControls(_controller.future),
-          SampleMenu(_controller.future),
+          NavigationControls(_webViewController.future),
+          SampleMenu(_webViewController.future),
         ],
       ),
-      // We're using a Builder here so we have a context that is below the Scaffold
-      // to allow calling Scaffold.of(context) so we can show a snackbar.
-      body: Builder(builder: (BuildContext context) {
-        return WebView(
-          initialUrl: 'https://flutter.dev',
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller.complete(webViewController);
-          },
-          // TODO(iskakaushik): Remove this when collection literals makes it to stable.
-          // ignore: prefer_collection_literals
-          javascriptChannels: <JavascriptChannel>[
-            _toasterJavascriptChannel(context),
-          ].toSet(),
-          navigationDelegate: (NavigationRequest request) {
-            if (request.url.startsWith('https://www.youtube.com/')) {
-              print('blocking navigation to $request}');
-              return NavigationDecision.prevent;
-            }
-            print('allowing navigation to $request');
-            return NavigationDecision.navigate;
-          },
-          onPageStarted: (String url) {
-            print('Page started loading: $url');
-          },
-          onPageFinished: (String url) {
-            print('Page finished loading: $url');
-          },
-          gestureNavigationEnabled: true,
-        );
-      }),
+      body: NestedScrollView(
+        controller: scrollController,
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverList(
+                delegate: SliverChildListDelegate(_buildList(20))
+            ),
+          ];
+        },
+        body: SliverToBoxAdapter(
+          child: ConstrainedBox(
+            key: _key,
+            constraints: BoxConstraints(maxHeight: _WEBVIEW_HEIGHT),
+            child: WebView(
+              onWebViewCreated: (WebViewController webViewController) {
+                _webViewController.complete(webViewController);
+              },
+              initialUrl: "https://news.google.com",
+              debuggingEnabled: true,
+            ),
+          ),
+        ),
+      ),
+//      body: CustomScrollView(
+//        controller: scrollController,
+//        slivers: <Widget>[
+//          SliverList(
+//              delegate: SliverChildListDelegate(_buildList(20))
+//          ),
+//          SliverToBoxAdapter(
+//              child: ConstrainedBox(
+//                key: _key,
+//                constraints: BoxConstraints(maxHeight: _WEBVIEW_HEIGHT),
+//                child: WebView(
+//                  onWebViewCreated: (WebViewController webViewController) {
+//                    _controller.complete(webViewController);
+//                  },
+//                  initialUrl: "https://news.google.com",
+//                  debuggingEnabled: true,
+//                ),
+//              ),
+//          ),
+//        ],
+//      ),
       floatingActionButton: favoriteButton(),
     );
   }
 
-  JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'Toaster',
-        onMessageReceived: (JavascriptMessage message) {
-          Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
-          );
-        });
+  List _buildList(int count) {
+    List<Widget> listItems = List();
+
+    for (int i = 0; i < count; i++) {
+      listItems.add(Padding(padding: EdgeInsets.all(20.0),
+          child: Text(
+              'Item ${i.toString()}',
+              style: TextStyle(fontSize: 25.0)
+          )
+      ));
+    }
+
+    return listItems;
   }
 
   Widget favoriteButton() {
     return FutureBuilder<WebViewController>(
-        future: _controller.future,
+        future: _webViewController.future,
         builder: (BuildContext context,
             AsyncSnapshot<WebViewController> controller) {
           if (controller.hasData) {
@@ -120,6 +144,8 @@ enum MenuOptions {
   listCache,
   clearCache,
   navigationDelegate,
+  testScrollTo,
+  testScrollBy,
 }
 
 class SampleMenu extends StatelessWidget {
@@ -137,6 +163,12 @@ class SampleMenu extends StatelessWidget {
         return PopupMenuButton<MenuOptions>(
           onSelected: (MenuOptions value) {
             switch (value) {
+              case MenuOptions.testScrollTo:
+                _onTestScrollTo(controller.data, context);
+                break;
+              case MenuOptions.testScrollBy:
+                _onTestScrollBy(controller.data, context);
+                break;
               case MenuOptions.showUserAgent:
                 _onShowUserAgent(controller.data, context);
                 break;
@@ -161,6 +193,14 @@ class SampleMenu extends StatelessWidget {
             }
           },
           itemBuilder: (BuildContext context) => <PopupMenuItem<MenuOptions>>[
+            PopupMenuItem<MenuOptions>(
+              value: MenuOptions.testScrollTo,
+              child: const Text('Test Scroll To'),
+            ),
+            PopupMenuItem<MenuOptions>(
+              value: MenuOptions.testScrollBy,
+              child: const Text('Test Scroll By'),
+            ),
             PopupMenuItem<MenuOptions>(
               value: MenuOptions.showUserAgent,
               child: const Text('Show user agent'),
@@ -194,6 +234,22 @@ class SampleMenu extends StatelessWidget {
         );
       },
     );
+  }
+
+  int mDeltaY = 0;
+  void _onTestScrollTo(
+      WebViewController controller, BuildContext context) async {
+
+    mDeltaY += 50;
+    print('ScrollTo $mDeltaY Requested..');
+    await controller.scrollTo(0, mDeltaY);
+  }
+
+  void _onTestScrollBy(
+      WebViewController controller, BuildContext context) async {
+
+    print('ScrollBy 150 Requested..');
+    await controller.scrollBy(0, -50);
   }
 
   void _onShowUserAgent(
